@@ -62,6 +62,8 @@ class KubaGame:
         if not self.is_valid_move(playername, coordinates, direction):
             return False
 
+
+
         self.switch_turns()
         self.check_for_winner()
 
@@ -95,7 +97,9 @@ class KubaGame:
         if self.get_current_turn() is not None and self.get_current_turn() != playername:
             return False
 
-        # Players may not push their pieces off the board
+        # Players may not push their pieces off the board.
+        if not self.can_marble_be_pushed(coordinates, direction):
+            return False
 
         return True
 
