@@ -296,6 +296,93 @@ class KubaGame:
         # Else
         return False
 
+    def can_marble_be_pushed(self, coordinates, direction):
+        """TBD"""
+        if not self.is_valid_coordinates(coordinates) or not self.is_valid_direction(direction):
+            return False
+
+        marble_color = self.get_marble(coordinates)
+        if direction == "L":
+            return self.can_marble_be_pushed_left(coordinates, marble_color)
+        if direction == "R":
+            return self.can_marble_be_pushed_right(coordinates, marble_color)
+        if direction == "F":
+            return self.can_marble_be_pushed_forward(coordinates, marble_color)
+        if direction == "B":
+            return self.can_marble_be_pushed_backward(coordinates, marble_color)
+
+    def can_marble_be_pushed_left(self, coordinates, marble_color):
+        """TBD"""
+        row = coordinates[0]
+        column = coordinates[1]
+
+        if column == 6 or self._board[row][column + 1] == "X":
+            # Check that we're not pushing our own piece off the board to the left
+            pointer = column - 1
+            while pointer >= 0:
+                if self._board[row][pointer] == "X":
+                    return True
+
+                if pointer == 0 and self._board[row][pointer] != marble_color:
+                    return True
+
+                pointer -= 1
+        return False
+
+    def can_marble_be_pushed_right(self, coordinates, marble_color):
+        """TBD"""
+        row = coordinates[0]
+        column = coordinates[1]
+
+        if column == 0 or self._board[row][column - 1] == "X":
+            # Check that we're not pushing our own piece off the board to the right
+            pointer = column + 1
+            while pointer <= 6:
+                if self._board[row][pointer] == "X":
+                    return True
+
+                if pointer == 6 and self._board[row][pointer] != marble_color:
+                    return True
+
+                pointer += 1
+        return False
+
+    def can_marble_be_pushed_forward(self, coordinates, marble_color):
+        """TBD"""
+        row = coordinates[0]
+        column = coordinates[1]
+
+        if row == 6 or self._board[row + 1][column] == "X":
+            # Check that we're not pushing our own piece off the board in the forward direction
+            pointer = row - 1
+            while pointer >= 0:
+                if self._board[pointer][column] == "X":
+                    return True
+
+                if pointer == 0 and self._board[pointer][column] != marble_color:
+                    return True
+
+                pointer -= 1
+        return False
+
+    def can_marble_be_pushed_backward(self, coordinates, marble_color):
+        """TBD"""
+        row = coordinates[0]
+        column = coordinates[1]
+
+        if row == 0 or self._board[row - 1][column] == "X":
+            # Check that we're not pushing our own piece off the board in the backward direction
+            pointer = row + 1
+            while pointer <= 6:
+                if self._board[pointer][column] == "X":
+                    return True
+
+                if pointer == 6 and self._board[pointer][column] != marble_color:
+                    return True
+
+                pointer += 1
+        return False
+
     def switch_turns(self):
         """If _current_turn is not None, switches _current_turn to opposite player"""
         if self._current_turn is not None:
