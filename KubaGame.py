@@ -241,59 +241,9 @@ class KubaGame:
         for row in range(7):
             for column in range(7):
                 if self._board[row][column] == current_turn_color:
-                    # Check if there is an open space in each orthogonal direction
-                    # Check to the right
-                    if column == 6 or self._board[row][column + 1] == "X":
-                        # Check that we're not pushing our own piece off the board to the left
-                        pointer = column - 1
-                        while pointer >= 0:
-                            if self._board[row][pointer] == "X":
-                                return True
-
-                            if pointer == 0 and self._board[row][pointer] != current_turn_color:
-                                return True
-
-                            pointer -= 1
-
-                    # Check to the left
-                    if column == 0 or self._board[row][column - 1] == "X":
-                        # Check that we're not pushing our own piece off the board to the right
-                        pointer = column + 1
-                        while pointer <= 6:
-                            if self._board[row][pointer] == "X":
-                                return True
-
-                            if pointer == 6 and self._board[row][pointer] != current_turn_color:
-                                return True
-
-                            pointer += 1
-
-                    # Check to the forward direction
-                    if row == 0 or self._board[row - 1][column] == "X":
-                        # Check that we're not pushing our own piece off the board in the backward direction
-                        pointer = row + 1
-                        while pointer <= 6:
-                            if self._board[pointer][column] == "X":
-                                return True
-
-                            if pointer == 6 and self._board[pointer][column] != current_turn_color:
-                                return True
-
-                            pointer += 1
-
-                    # Check to the backward direction
-                    if row == 6 or self._board[row + 1][column] == "X":
-                        # Check that we're not pushing our own piece off the board in the forward direction
-                        pointer = row - 1
-                        while pointer >= 0:
-                            if self._board[pointer][column] == "X":
-                                return True
-
-                            if pointer == 0 and self._board[pointer][column] != current_turn_color:
-                                return True
-
-                            pointer -= 1
-        # Else
+                    for direction in self._valid_directions:
+                        if self.can_marble_be_pushed((row, column), direction):
+                            return True
         return False
 
     def can_marble_be_pushed(self, coordinates, direction):
