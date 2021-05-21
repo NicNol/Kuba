@@ -48,16 +48,12 @@ class KubaGame:
         """Returns the player name corresponding to who's turn it is, or None if game hasn't started yet"""
         return self._current_turn
 
-    def set_current_turn(self, playername):
-        """Sets the value of _current_turn to playername"""
-        self._current_turn = playername
-
     def make_move(self, playername, coordinates, direction):
         """Attempts to make a move for playername by pushing marble at coordinates in the given direction.
 
         Parameters:
             playername : name of player attempting to make move
-            coordinates : coordinates of marble to be pushed as a tuple (X, Y)
+            coordinates : coordinates of marble to be pushed as a tuple (row, column)
             direction : one index in _valid_directions
 
         Returns:
@@ -70,7 +66,16 @@ class KubaGame:
         self.check_for_winner()
 
     def is_valid_move(self, playername, coordinates, direction):
-        """"""
+        """Checks the validity of a potential move by checking parameters and game rules
+
+        Parameters:
+            playername : name of player attempting to make move
+            coordinates : coordinates of marble to be pushed as a tuple (row, column)
+            direction : one index in _valid_directions
+
+        Returns:
+            A boolean value based on if move is valid (input is acceptable and does not violate game rules)
+        """
         # Validate Inputs
         if not (self.is_valid_playername(playername) and self.is_valid_coordinates(
                 coordinates) and self.is_valid_direction(direction)):
@@ -95,14 +100,28 @@ class KubaGame:
         return True
 
     def is_valid_playername(self, playername):
-        """"""
+        """Verifies that one of the two given player names is being called
+
+        Parameters:
+            playername : name of player we want to validate
+
+        Returns:
+            a boolean value based on if playername is one of the players
+        """
         if playername in self._players:
             return True
 
         return False
 
     def is_valid_coordinates(self, coordinates):
-        """"""
+        """Verifies that the given coordinates are integers in the correct range, nested in a tuple
+
+        Parameters:
+            coordinates : coordinates of marble as a tuple (row, column)
+
+        Returns:
+            a boolean value based on if the coordinates are integers in the correct range, nested in a tuple
+        """
         if not isinstance(coordinates, tuple):
             return False
 
@@ -121,11 +140,18 @@ class KubaGame:
         return True
 
     def is_valid_direction(self, direction):
-        """Checks if a given direction is a valid input"""
-        if direction not in self._valid_directions:
-            return False
+        """Checks if a given direction is a valid input based on _valid_directions
 
-        return True
+        Parameters:
+            direction
+
+        Returns:
+            a boolean value based on if the given direction is in _valid_directions
+        """
+        if direction in self._valid_directions:
+            return True
+
+        return False
 
     def is_game_over(self):
         """Returns a boolean value based on if the game is over."""
@@ -141,44 +167,144 @@ class KubaGame:
         return self._winner
 
     def check_for_winner(self):
-        """"""
-        players = self._players.keys()
+        """Checks for all possible win conditions and sets _winner if win condition is met
+
+        Note: runs after a move is played and turn has been switched.
+
+        Returns:
+            None
+        """
+        if self.check_for_player_with_7_captures():
+            return True
+
+        if self.check_for_player_with_no_pieces():
+            return True
+
+        if self.check_for_player_that_cannot_move():
+            return True
+
+    def check_for_player_with_7_captures(self):
+        """TBD"""
         # Has any player captured 7 red pieces?
+        players = self.get_playernames()
         for playername in players:
             if self.get_captured(playername) >= 7:
                 self._winner = playername
-                return None
+                return True
+        return False
 
+    def check_for_player_with_no_pieces(self):
+        """TBD"""
+        players = self.get_playernames()
         # Does one player have zero pieces?
         pieces_on_board = self.get_marble_count()
         white_piece_count = pieces_on_board[0]
         black_piece_count = pieces_on_board[1]
 
         if white_piece_count == 0:
-
+            # Black Wins
             for playername in players:
                 if self._players[playername]["color"] == "B":
                     self._winner = playername
-                    return None
+                    return True
 
         if black_piece_count == 0:
-
+            # White Wins
             for playername in players:
                 if self._players[playername]["color"] == "W":
                     self._winner = playername
-                    return None
+                    return True
 
-    # Can both players still move?
+        return False
+
+    def check_for_player_that_cannot_move(self):
+        """TBD"""
+        players = self.get_playernames()
+        # Can current_player move? Verify after we know both players have pieces on the board
+        if not self.can_current_player_move():
+            for playername in players:
+                if playername != self.get_current_turn():
+                    self._winner = playername
+                    return True
+        return False
+
+    def can_current_player_move(self):
+        """Checks that the current player has a legal move that they can play
+
+        Parameters:
+            N/A
+
+        Returns:
+            A boolean value based on if _current_player has at least one legal move
+        """
+        current_turn_color = self._players[self._current_turn]["color"]
+        for row in range(7):
+            for column in range(7):
+                if self._board[row][column] == current_turn_color:
+                    # Check if there is an open space in each orthogonal direction
+                    # Check to the right
+                    if column == 6 or self._board[row][column + 1] == "X":
+                        # Check that we're not pushing our own piece off the board to the left
+                        pointer = column - 1
+                        while pointer >= 0:
+                            if self._board[row][pointer] == "X":
+                                return True
+
+                            if pointer == 0 and self._board[row][pointer] != current_turn_color:
+                                return True
+
+                            pointer -= 1
+
+                    # Check to the left
+                    if column == 0 or self._board[row][column - 1] == "X":
+                        # Check that we're not pushing our own piece off the board to the right
+                        pointer = column + 1
+                        while pointer <= 6:
+                            if self._board[row][pointer] == "X":
+                                return True
+
+                            if pointer == 6 and self._board[row][pointer] != current_turn_color:
+                                return True
+
+                            pointer += 1
+
+                    # Check to the forward direction
+                    if row == 0 or self._board[row - 1][column] == "X":
+                        # Check that we're not pushing our own piece off the board in the backward direction
+                        pointer = row + 1
+                        while pointer <= 6:
+                            if self._board[pointer][column] == "X":
+                                return True
+
+                            if pointer == 6 and self._board[pointer][column] != current_turn_color:
+                                return True
+
+                            pointer += 1
+
+                    # Check to the backward direction
+                    if row == 6 or self._board[row + 1][column] == "X":
+                        # Check that we're not pushing our own piece off the board in the forward direction
+                        pointer = row - 1
+                        while pointer >= 0:
+                            if self._board[pointer][column] == "X":
+                                return True
+
+                            if pointer == 0 and self._board[pointer][column] != current_turn_color:
+                                return True
+
+                            pointer -= 1
+        # Else
+        return False
 
     def switch_turns(self):
         """If _current_turn is not None, switches _current_turn to opposite player"""
         if self._current_turn is not None:
             playernames = self.get_playernames()
             if self._current_turn == playernames[0]:
-                self.set_current_turn(playernames[1])
+                self._current_turn = playernames[1]
                 return None
 
-            self.set_current_turn(playernames[1])
+            self._current_turn = playernames[0]
             return None
 
     def get_playernames(self):
