@@ -1,20 +1,48 @@
 # Author: Nic Nolan
 # Date: 05/20/2021
-# Description:
+# Description: The game Kuba represented as a class KubaGame that is playable with various commands.
 
 class KubaGame:
-    """A class representing a Kuba game
+    """A class representing a Kuba game.
 
     Data Members (private):
-        _players :
-        _board :
-        _valid_directions :
-        _winner :
-        _current_turn :
-        _forbidden_move :
+        _players : dict, with playername as key. Key value is a dict with 'name', 'color', and 'capture count'
+        _board : holds the state of the board in string representation
+        _valid_directions : lists the valid directions a player can push ['L', 'R', 'F', 'B']
+        _winner : the winner of the game; initialized as None
+        _current_turn : the player who is allowed to make a move; initialized as None
+        _forbidden_move : dict with 'coordinates' and 'direction' as keys; an illegal move that repeats last position
 
     Methods:
-
+        get_current_turn() --> playername
+        make_move(playername, coordinates, direction) --> boolean
+        push_marble(coordinates, direction)
+        push_marble_horizontal(coordinates, direction)
+        push_marble_vertical(coordinates, direction)
+        is_valid_move(playername, coordinates, direction) --> boolean
+        is_valid_playername(playername) --> boolean
+        is_valid_coordinates(coordinates) --> boolean
+        is_valid_direction(direction) --> boolean
+        set_forbidden_move(coordinates, direction)
+        is_forbidden_move(coordinates, direction) --> boolean
+        is_game_over() --> boolean
+        get_winner() --> playername
+        check_for_winner() --> boolean
+        check_for_player_with_7_captures() --> boolean
+        check_for_player_with_no_pieces() --> boolean
+        check_for_player_that_cannot_move() --> boolean
+        can_current_player_move() --> boolean
+        can_marble_be_pushed(coordinates, direction) --> boolean
+        can_marble_be_pushed_left(coordinates, marble_color) --> boolean
+        can_marble_be_pushed_right(coordinates, marble_color) --> boolean
+        can_marble_be_pushed_forward(coordinates, marble_color) --> boolean
+        can_marble_be_pushed_backward(coordinates, marble_color) --> boolean
+        switch_turns()
+        get_playernames()
+        get_captured(playername) --> captured pieces as int
+        handle_captured_piece(captured_piece_color)
+        get_marble(coordinates) --> marble color ["W", "B", "R"]
+        get_marble_count() --> tuple of ints (num_white, num_black, num_red)
     """
 
     def __init__(self, player_one, player_two):
@@ -48,19 +76,26 @@ class KubaGame:
         self._winner = None
         self._current_turn = None
         self._forbidden_move = {"coordinates": (),
-                                "direction": ""
-                                }
+                                "direction": ""}
 
     def get_current_turn(self):
-        """Returns the player name corresponding to who's turn it is, or None if game hasn't started yet"""
+        """Returns the player name corresponding to who's turn it is, or None if game hasn't started yet
+
+        Parameters:
+            N/A
+        Returns:
+            string value playername stored in _current_turn, or None if game hasn't started
+        """
         return self._current_turn
 
     def make_move(self, playername, coordinates, direction):
         """Attempts to make a move for playername by pushing marble at coordinates in the given direction.
+
         Parameters:
             playername : name of player attempting to make move
             coordinates : coordinates of marble to be pushed as a tuple (row, column)
             direction : one index in _valid_directions
+
         Returns:
             A boolean value based on if move was actually made
         """
@@ -77,7 +112,15 @@ class KubaGame:
         return True
 
     def push_marble(self, coordinates, direction):
+        """Pushes marble at 'coordinates' in 'direction' on _board
 
+        Parameters:
+            coordinates : coordinates of marble to be pushed as a tuple (row, column)
+            direction : one index in _valid_directions
+
+        Returns:
+            None
+        """
         if direction == "L" or direction == "R":
             self.push_marble_horizontal(coordinates, direction)
 
@@ -85,6 +128,15 @@ class KubaGame:
             self.push_marble_vertical(coordinates, direction)
 
     def push_marble_horizontal(self, coordinates, direction):
+        """Pushes marble at 'coordinates' in direction 'L' or 'R' on _board
+
+        Parameters:
+            coordinates : coordinates of marble to be pushed as a tuple (row, column)
+            direction : 'L' or 'R'
+
+        Returns:
+            None
+        """
         row = coordinates[0]
         column = coordinates[1]
         pointer = column
@@ -120,6 +172,15 @@ class KubaGame:
                 return None
 
     def push_marble_vertical(self, coordinates, direction):
+        """Pushes marble at 'coordinates' in direction 'F' or 'B' on _board
+
+        Parameters:
+            coordinates : coordinates of marble to be pushed as a tuple (row, column)
+            direction : 'F' or 'B'
+
+        Returns:
+            None
+        """
         row = coordinates[0]
         column = coordinates[1]
         pointer = row
@@ -160,10 +221,12 @@ class KubaGame:
 
     def is_valid_move(self, playername, coordinates, direction):
         """Checks the validity of a potential move by checking parameters and game rules
+
         Parameters:
             playername : name of player attempting to make move
             coordinates : coordinates of marble to be pushed as a tuple (row, column)
             direction : one index in _valid_directions
+
         Returns:
             A boolean value based on if move is valid (input is acceptable and does not violate game rules)
         """
@@ -174,7 +237,6 @@ class KubaGame:
             return False
 
         # Validate no rules are broken
-
         # Players may not move if game is over
         if self.get_winner() is not None:
             return False
@@ -200,8 +262,10 @@ class KubaGame:
 
     def is_valid_playername(self, playername):
         """Verifies that one of the two given player names is being called
+
         Parameters:
             playername : name of player we want to validate
+
         Returns:
             a boolean value based on if playername is one of the players
         """
@@ -212,8 +276,10 @@ class KubaGame:
 
     def is_valid_coordinates(self, coordinates):
         """Verifies that the given coordinates are integers in the correct range, nested in a tuple
+
         Parameters:
             coordinates : coordinates of marble as a tuple (row, column)
+
         Returns:
             a boolean value based on if the coordinates are integers in the correct range, nested in a tuple
         """
@@ -237,8 +303,10 @@ class KubaGame:
 
     def is_valid_direction(self, direction):
         """Checks if a given direction is a valid input based on _valid_directions
+
         Parameters:
-            direction
+            direction : one index in _valid_directions
+
         Returns:
             a boolean value based on if the given direction is in _valid_directions
         """
@@ -248,18 +316,39 @@ class KubaGame:
         return False
 
     def set_forbidden_move(self, coordinates, direction):
-        """TBD"""
+        """Sets the value of _forbidden_move
+
+        Parameters:
+            coordinates : coordinates of marble that may not be pushed, as a tuple (row, column)
+            direction : one index in _valid_directions
+        Returns:
+            None
+        """
         self._forbidden_move["coordinates"] = coordinates
         self._forbidden_move["direction"] = direction
 
     def is_forbidden_move(self, coordinates, direction):
-        """TBD"""
+        """Returns a boolean based on if the coordinates and direction are the_forbidden_move
+
+        Parameters:
+            coordinates : coordinates of marble to be checked, as a tuple (row, column)
+            direction : one index in _valid_directions
+
+        Returns:
+            A boolean based on if the coordinates and direction are the _forbidden_move
+        """
         if coordinates == self._forbidden_move["coordinates"] and direction == self._forbidden_move["direction"]:
             return True
         return False
 
     def is_game_over(self):
-        """Returns a boolean value based on if the game is over."""
+        """Returns a boolean value based on if the game is over
+
+        Parameters:
+            N/A
+        Returns:
+            A boolean value based on if the game is over
+        """
         self.check_for_winner()
 
         if self.get_winner() is None:
@@ -268,12 +357,24 @@ class KubaGame:
         return True
 
     def get_winner(self):
-        """Returns the name of the winner or None if no winner"""
+        """Returns the name of the winner or None if no winner
+
+        Parameters:
+            N/A
+
+        Returns:
+            _winner (playername string)
+        """
         return self._winner
 
     def check_for_winner(self):
         """Checks for all possible win conditions and sets _winner if win condition is met
+
         Note: runs after a move is played and turn has been switched.
+
+        Parameters:
+            N/A
+
         Returns:
             None
         """
@@ -287,8 +388,14 @@ class KubaGame:
             return True
 
     def check_for_player_with_7_captures(self):
-        """TBD"""
-        # Has any player captured 7 red pieces?
+        """Determines if a player has captured 7 pieces and sets _winner if so
+
+        Parameters
+            N/A
+
+        Returns:
+            a boolean value based on if a player has won or not
+        """
         players = self.get_playernames()
         for playername in players:
             if self.get_captured(playername) >= 7:
@@ -297,15 +404,20 @@ class KubaGame:
         return False
 
     def check_for_player_with_no_pieces(self):
-        """TBD"""
+        """Determines if a player has no pieces on the board and sets _winner if so
+
+        Parameters
+            N/A
+
+        Returns:
+            a boolean value based on if a player has won or not
+        """
         players = self.get_playernames()
-        # Does one player have zero pieces?
         pieces_on_board = self.get_marble_count()
         white_piece_count = pieces_on_board[0]
         black_piece_count = pieces_on_board[1]
 
-        if white_piece_count == 0:
-            # Black Wins
+        if white_piece_count == 0:  # Black Wins
             for playername in players:
                 if self._players[playername]["color"] == "B":
                     self._winner = playername
@@ -321,7 +433,14 @@ class KubaGame:
         return False
 
     def check_for_player_that_cannot_move(self):
-        """TBD"""
+        """Determines if _current_turn player cannot move and sets _winner if so
+
+        Parameters
+            N/A
+
+        Returns:
+            a boolean value based on if a player has won or not
+        """
         players = self.get_playernames()
         # Can current_player move? Verify after we know both players have pieces on the board
         if not self.can_current_player_move():
@@ -332,11 +451,13 @@ class KubaGame:
         return False
 
     def can_current_player_move(self):
-        """Checks that the current player has a legal move that they can play
-        Parameters:
+        """Determines if _current_turn player has any legal moves
+
+        Parameters
             N/A
+
         Returns:
-            A boolean value based on if _current_player has at least one legal move
+            a boolean value based on if _current_turn player has any legal moves
         """
         if self._current_turn is None:
             return True
@@ -351,7 +472,15 @@ class KubaGame:
         return False
 
     def can_marble_be_pushed(self, coordinates, direction):
-        """TBD"""
+        """Determines if marble at 'coordinates' can be pushed in 'direction'
+
+        Parameters
+            coordinates : coordinates of marble as a tuple (row, column)
+            direction : one index in _valid_directions
+
+        Returns:
+            a boolean value based on if the marble at 'coordinates' can be pushed in 'direction'
+        """
         if not self.is_valid_coordinates(
                 coordinates) or not self.is_valid_direction(direction):
             return False
@@ -367,7 +496,15 @@ class KubaGame:
             return self.can_marble_be_pushed_backward(coordinates, marble_color)
 
     def can_marble_be_pushed_left(self, coordinates, marble_color):
-        """TBD"""
+        """Determines if marble at 'coordinates' can be pushed in direction 'L'
+
+        Parameters
+            coordinates : coordinates of marble as a tuple (row, column)
+            marble_color : the color of the marble at 'coordinates'
+
+        Returns:
+            a boolean value based on if the marble at 'coordinates' can be pushed in direction 'L'
+        """
         row = coordinates[0]
         column = coordinates[1]
 
@@ -385,7 +522,15 @@ class KubaGame:
         return False
 
     def can_marble_be_pushed_right(self, coordinates, marble_color):
-        """TBD"""
+        """Determines if marble at 'coordinates' can be pushed in direction 'R'
+
+        Parameters
+            coordinates : coordinates of marble as a tuple (row, column)
+            marble_color : the color of the marble at 'coordinates'
+
+        Returns:
+            a boolean value based on if the marble at 'coordinates' can be pushed in direction 'R'
+        """
         row = coordinates[0]
         column = coordinates[1]
 
@@ -403,7 +548,15 @@ class KubaGame:
         return False
 
     def can_marble_be_pushed_forward(self, coordinates, marble_color):
-        """TBD"""
+        """Determines if marble at 'coordinates' can be pushed in direction 'F'
+
+        Parameters
+            coordinates : coordinates of marble as a tuple (row, column)
+            marble_color : the color of the marble at 'coordinates'
+
+        Returns:
+            a boolean value based on if the marble at 'coordinates' can be pushed in direction 'F'
+        """
         row = coordinates[0]
         column = coordinates[1]
 
@@ -421,7 +574,15 @@ class KubaGame:
         return False
 
     def can_marble_be_pushed_backward(self, coordinates, marble_color):
-        """TBD"""
+        """Determines if marble at 'coordinates' can be pushed in direction 'B'
+
+        Parameters
+            coordinates : coordinates of marble as a tuple (row, column)
+            marble_color : the color of the marble at 'coordinates'
+
+        Returns:
+            a boolean value based on if the marble at 'coordinates' can be pushed in direction 'B'
+        """
         row = coordinates[0]
         column = coordinates[1]
 
@@ -439,7 +600,14 @@ class KubaGame:
         return False
 
     def switch_turns(self):
-        """Switches _current_turn to opposite player"""
+        """Switches _current_turn to opposite player
+
+        Parameters:
+            N/A
+
+        Returns:
+            None
+        """
         playernames = self.get_playernames()
         if self._current_turn == playernames[0]:
             self._current_turn = playernames[1]
@@ -449,7 +617,14 @@ class KubaGame:
         return None
 
     def get_playernames(self):
-        """Returns a list of playernames in _players"""
+        """Returns a list of playernames in _players
+
+        Parameters:
+            N/A
+
+        Returns:
+            a list of playernames ["player 1", "player 2"]
+        """
         players = self._players.keys()
         playernames = []
         for name in players:
@@ -458,7 +633,14 @@ class KubaGame:
         return playernames
 
     def get_captured(self, playername):
-        """Returns the number of red marbles captured by playername"""
+        """Returns the number of red marbles captured by 'playername'
+
+        Parameters:
+            playername : name of a player in _players
+
+        Returns:
+            int representing number of red marbles captured by 'playername'
+        """
         if self.is_valid_playername(playername):
             return self._players[playername]["capture count"]
 
@@ -466,23 +648,41 @@ class KubaGame:
         return 0
 
     def handle_captured_piece(self, captured_piece_color):
-        """Increments the number of red marbles captured by playername"""
+        """Increments the number of red marbles captured by _current_turn player
+
+        Parameters:
+            captured_piece_color : the color of the captured piece ['W', 'B', 'R']
+
+        Returns:
+            None
+        """
         if captured_piece_color == "R":
             current_turn = self.get_current_turn()
-            print("capture count before:", self._players[current_turn]["capture count"])
             self._players[current_turn]["capture count"] += 1
-            print("capture count after:", self._players[current_turn]["capture count"])
 
     def get_marble(self, coordinates):
-        """Returns the color of the marble ["W", "B", "R"] at the coordinates (row, column) or "X" if None"""
+        """Returns the color of the marble ['W', 'B', 'R'] at the coordinates (row, column) or "X" if None
+
+        Parameters:
+            coordinates : coordinates of board where piece may be, as a tuple (row, column)
+
+        Returns:
+            a string representing a piece ['W', 'B', 'R'] or an empty square ['X']
+        """
         if self.is_valid_coordinates(coordinates):
             row = coordinates[0]
             column = coordinates[1]
             return self._board[row][column]
 
     def get_marble_count(self):
-        """Returns the number of White, Black, and Red marbles on the board as a tuple in the order (W,B,R)"""
+        """Returns the number of white, black, and red marbles on the board as a tuple in the order (W, B, R)
 
+        Parameters:
+            N/A
+
+        Returns:
+            a tuple representing the int number of white, black, and red marbles (W, B, R)
+        """
         num_white = 0
         num_black = 0
         num_red = 0
@@ -506,29 +706,16 @@ class KubaGame:
 
 
 def main():
+    """The main function for KubaGame.py"""
     game = KubaGame(('PlayerA', 'W'), ('PlayerB', 'B'))
-    print(game.get_marble_count())  # returns (8,8,13)
+    game.get_marble_count()  # returns (8,8,13)
     game.get_captured('PlayerA')  # returns 0
 
     game.get_winner()  # returns None
-    game.make_move('PlayerA', (6, 5), 'F')
-    game.make_move('PlayerB', (0, 5), 'B')
-    game.make_move('PlayerA', (5, 5), 'F')
-    game.make_move('PlayerB', (6, 0), 'R')
-    game.make_move('PlayerA', (4, 5), 'F')
-    game.make_move('PlayerB', (6, 1), 'R')
-    game.make_move('PlayerA', (3, 5), 'F')
-    game.make_move('PlayerB', (6, 2), 'R')
-    game.make_move('PlayerA', (2, 5), 'F')
-    game.make_move('PlayerB', (6, 3), 'R')
-
-    #game.make_move('PlayerA', (6, 5), 'L')  # Cannot make this move
-    print(game.get_current_turn())  # returns 'PlayerB' because PlayerA has just played.
+    game.make_move('PlayerA', (6, 5), 'L')  # Cannot make this move
+    game.get_current_turn()  # returns 'PlayerB' because PlayerA has just played.
     game.get_marble((5, 5))  # returns 'W'
-    for line in game._board:
-        print(line)
-    print(game.get_marble_count())
-    print(game.get_captured("PlayerA"))
+
 
 if __name__ == "__main__":
     main()
