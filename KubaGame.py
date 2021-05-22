@@ -1,5 +1,5 @@
-# Author:
-# Date:
+# Author: Nic Nolan
+# Date: 05/20/2021
 # Description:
 
 class KubaGame:
@@ -11,28 +11,32 @@ class KubaGame:
         _valid_directions :
         _winner :
         _current_turn :
+        _forbidden_move :
 
     Methods:
-
 
     """
 
     def __init__(self, player_one, player_two):
         """Initialize the KubaGame data members
-
         Parameters:
             player_one : ('Player One Name', 'W')
             player_two : ('Player Two Name', 'B')
-
         Returns:
             None
         """
-        self._players = {player_one[0]: {"name": player_one[0],
-                                         "color": player_one[1],
-                                         "capture count": 0},
-                         player_two[0]: {"name": player_two[0],
-                                         "color": player_two[1],
-                                         "capture count": 0}}
+        self._players = {
+            player_one[0]: {
+                "name": player_one[0],
+                "color": player_one[1],
+                "capture count": 0
+            },
+            player_two[0]: {
+                "name": player_two[0],
+                "color": player_two[1],
+                "capture count": 0
+            }
+        }
         self._board = [["W", "W", "X", "X", "X", "B", "B"],
                        ["W", "W", "X", "R", "X", "B", "B"],
                        ["X", "X", "R", "R", "R", "X", "X"],
@@ -43,6 +47,7 @@ class KubaGame:
         self._valid_directions = ["L", "R", "F", "B"]  # Left, Right, Forward, Back
         self._winner = None
         self._current_turn = None
+        self._forbidden_move = None
 
     def get_current_turn(self):
         """Returns the player name corresponding to who's turn it is, or None if game hasn't started yet"""
@@ -50,37 +55,111 @@ class KubaGame:
 
     def make_move(self, playername, coordinates, direction):
         """Attempts to make a move for playername by pushing marble at coordinates in the given direction.
-
         Parameters:
             playername : name of player attempting to make move
             coordinates : coordinates of marble to be pushed as a tuple (row, column)
             direction : one index in _valid_directions
-
         Returns:
             A boolean value based on if move was actually made
         """
         if not self.is_valid_move(playername, coordinates, direction):
             return False
 
+        self.push_marble(coordinates, direction)
 
-
-        self.switch_turns()
+        self.switch_turns()  # Should we switch after every move or only when a marble isn't removed from the board?
         self.check_for_winner()
+
+        return True
+
+    def push_marble(self, coordinates, direction):
+
+        if direction == "L" or direction == "R":
+            self.push_marble_horizontal(coordinates, direction)
+
+        if direction == "F" or direction == "B":
+            self.push_marble_vertical(coordinates, direction)
+
+    def push_marble_horizontal(self, coordinates, direction):
+        row = coordinates[0]
+        column = coordinates[1]
+        pointer = column
+        variable_dict = {
+            "L": {
+                "step": -1,
+                "boundary": 0
+            },
+            "R": {
+                "step": 1,
+                "boundary": 6
+            }
+        }
+        step = variable_dict[direction]["step"]
+        boundary = variable_dict[direction]["boundary"]
+
+        while 0 <= pointer <= 6:
+            pointer += step
+            if pointer == "X":
+                self._board[row].pop(pointer)
+                self._board[row].insert(column, "X")
+                return None
+
+            if pointer == boundary:
+                captured_piece_color = self.get_marble((row, pointer))
+                self.handle_captured_piece(captured_piece_color)  # fix this to handle all captured pieces
+                self._board[row].pop(pointer)
+                self._board[row].insert(column, "X")
+                return None
+
+    def push_marble_vertical(self, coordinates, direction):
+        row = coordinates[0]
+        column = coordinates[1]
+        pointer = row
+        variable_dict = {
+            "F": {
+                "step": -1,
+                "boundary": 0
+            },
+            "B": {
+                "step": 1,
+                "boundary": 6
+            }
+        }
+        step = variable_dict[direction]["step"]
+        boundary = variable_dict[direction]["boundary"]
+
+        while 0 <= pointer <= 6:
+            pointer += step
+            if self._board[pointer][column] == "X":
+
+                while pointer != row:
+                    self._board[pointer][column] = self._board[pointer - step][column]
+                    pointer -= step
+                self._board[row][column] = "X"
+                return None
+
+            if pointer == boundary:
+                captured_piece_color = self.get_marble((row, pointer))
+                self.handle_captured_piece(captured_piece_color)  # fix this to handle all captured pieces
+                while pointer != row:
+                    self._board[pointer][column] = self._board[pointer - step][column]
+                    pointer -= step
+                self._board[row][column] = "X"
+                return None
 
     def is_valid_move(self, playername, coordinates, direction):
         """Checks the validity of a potential move by checking parameters and game rules
-
         Parameters:
             playername : name of player attempting to make move
             coordinates : coordinates of marble to be pushed as a tuple (row, column)
             direction : one index in _valid_directions
-
         Returns:
             A boolean value based on if move is valid (input is acceptable and does not violate game rules)
         """
         # Validate Inputs
-        if not (self.is_valid_playername(playername) and self.is_valid_coordinates(
-                coordinates) and self.is_valid_direction(direction)):
+        if not (self.is_valid_playername(playername)
+                and self.is_valid_coordinates(coordinates)
+                and self.is_valid_direction(direction)):
             return False
 
         # Validate no rules are broken
@@ -94,7 +173,8 @@ class KubaGame:
             return False
 
         # Players may only move on their turn
-        if self.get_current_turn() is not None and self.get_current_turn() != playername:
+        if self.get_current_turn(
+        ) is not None and self.get_current_turn() != playername:
             return False
 
         # Players may not push their pieces off the board.
@@ -105,10 +185,8 @@ class KubaGame:
 
     def is_valid_playername(self, playername):
         """Verifies that one of the two given player names is being called
-
         Parameters:
             playername : name of player we want to validate
-
         Returns:
             a boolean value based on if playername is one of the players
         """
@@ -119,10 +197,8 @@ class KubaGame:
 
     def is_valid_coordinates(self, coordinates):
         """Verifies that the given coordinates are integers in the correct range, nested in a tuple
-
         Parameters:
             coordinates : coordinates of marble as a tuple (row, column)
-
         Returns:
             a boolean value based on if the coordinates are integers in the correct range, nested in a tuple
         """
@@ -132,7 +208,8 @@ class KubaGame:
         if len(coordinates) != 2:
             return False
 
-        if not isinstance(coordinates[0], int) or not isinstance(coordinates[1], int):
+        if not isinstance(coordinates[0], int) or not isinstance(
+                coordinates[1], int):
             return False
 
         if coordinates[0] < 0 or coordinates[0] > 6:
@@ -145,10 +222,8 @@ class KubaGame:
 
     def is_valid_direction(self, direction):
         """Checks if a given direction is a valid input based on _valid_directions
-
         Parameters:
             direction
-
         Returns:
             a boolean value based on if the given direction is in _valid_directions
         """
@@ -172,9 +247,7 @@ class KubaGame:
 
     def check_for_winner(self):
         """Checks for all possible win conditions and sets _winner if win condition is met
-
         Note: runs after a move is played and turn has been switched.
-
         Returns:
             None
         """
@@ -234,13 +307,14 @@ class KubaGame:
 
     def can_current_player_move(self):
         """Checks that the current player has a legal move that they can play
-
         Parameters:
             N/A
-
         Returns:
             A boolean value based on if _current_player has at least one legal move
         """
+        if self._current_turn is None:
+            return True
+
         current_turn_color = self._players[self._current_turn]["color"]
         for row in range(7):
             for column in range(7):
@@ -252,7 +326,8 @@ class KubaGame:
 
     def can_marble_be_pushed(self, coordinates, direction):
         """TBD"""
-        if not self.is_valid_coordinates(coordinates) or not self.is_valid_direction(direction):
+        if not self.is_valid_coordinates(
+                coordinates) or not self.is_valid_direction(direction):
             return False
 
         marble_color = self.get_marble(coordinates)
@@ -365,8 +440,11 @@ class KubaGame:
         # If playername is not valid, return 0
         return 0
 
-    def increment_captured(self, playername):
+    def handle_captured_piece(self, captured_piece_color):
         """Increments the number of red marbles captured by playername"""
+        if captured_piece_color == "R":
+            current_turn = self.get_current_turn()
+            self._players[current_turn]["capture count"] += 1
 
     def get_marble(self, coordinates):
         """Returns the color of the marble ["W", "B", "R"] at the coordinates (row, column) or "X" if None"""
@@ -408,7 +486,8 @@ def main():
     game.get_winner()  # returns None
     game.make_move('PlayerA', (6, 5), 'F')
     game.make_move('PlayerA', (6, 5), 'L')  # Cannot make this move
-    print(game.get_current_turn())  # returns 'PlayerB' because PlayerA has just played.
+    print(game.get_current_turn()
+          )  # returns 'PlayerB' because PlayerA has just played.
     game.get_marble((5, 5))  # returns 'W'
 
 
