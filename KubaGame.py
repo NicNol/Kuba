@@ -47,7 +47,9 @@ class KubaGame:
         self._valid_directions = ["L", "R", "F", "B"]  # Left, Right, Forward, Back
         self._winner = None
         self._current_turn = None
-        self._forbidden_move = None
+        self._forbidden_move = {"coordinates": (),
+                                "direction": ""
+                                }
 
     def get_current_turn(self):
         """Returns the player name corresponding to who's turn it is, or None if game hasn't started yet"""
@@ -88,11 +90,13 @@ class KubaGame:
         variable_dict = {
             "L": {
                 "step": -1,
-                "boundary": 0
+                "boundary": 0,
+                "forbidden direction": "R"
             },
             "R": {
                 "step": 1,
-                "boundary": 6
+                "boundary": 6,
+                "forbidden direction": "L"
             }
         }
         step = variable_dict[direction]["step"]
@@ -103,6 +107,7 @@ class KubaGame:
             if pointer == "X":
                 self._board[row].pop(pointer)
                 self._board[row].insert(column, "X")
+                self.set_forbidden_move((row, pointer), variable_dict[direction]["forbidden direction"])
                 return None
 
             if pointer == boundary:
@@ -110,6 +115,7 @@ class KubaGame:
                 self.handle_captured_piece(captured_piece_color)  # fix this to handle all captured pieces
                 self._board[row].pop(pointer)
                 self._board[row].insert(column, "X")
+                self.set_forbidden_move((), "")  # No forbidden moves, piece can not come back
                 return None
 
     def push_marble_vertical(self, coordinates, direction):
@@ -119,11 +125,13 @@ class KubaGame:
         variable_dict = {
             "F": {
                 "step": -1,
-                "boundary": 0
+                "boundary": 0,
+                "forbidden direction": "B"
             },
             "B": {
                 "step": 1,
-                "boundary": 6
+                "boundary": 6,
+                "forbidden direction": "F"
             }
         }
         step = variable_dict[direction]["step"]
@@ -132,7 +140,7 @@ class KubaGame:
         while 0 <= pointer <= 6:
             pointer += step
             if self._board[pointer][column] == "X":
-
+                self.set_forbidden_move((pointer, column), variable_dict[direction]["forbidden direction"])
                 while pointer != row:
                     self._board[pointer][column] = self._board[pointer - step][column]
                     pointer -= step
@@ -142,6 +150,7 @@ class KubaGame:
             if pointer == boundary:
                 captured_piece_color = self.get_marble((row, pointer))
                 self.handle_captured_piece(captured_piece_color)  # fix this to handle all captured pieces
+                self.set_forbidden_move((), "")  # No forbidden moves, piece can not come back
                 while pointer != row:
                     self._board[pointer][column] = self._board[pointer - step][column]
                     pointer -= step
@@ -180,6 +189,10 @@ class KubaGame:
 
         # Players may not push their pieces off the board.
         if not self.can_marble_be_pushed(coordinates, direction):
+            return False
+
+        # Players may not repeat the previous position
+        if self.is_forbidden_move(coordinates, direction):
             return False
 
         return True
@@ -231,6 +244,17 @@ class KubaGame:
         if direction in self._valid_directions:
             return True
 
+        return False
+
+    def set_forbidden_move(self, coordinates, direction):
+        """TBD"""
+        self._forbidden_move["coordinates"] = coordinates
+        self._forbidden_move["direction"] = direction
+
+    def is_forbidden_move(self, coordinates, direction):
+        """TBD"""
+        if coordinates == self._forbidden_move["coordinates"] and direction == self._forbidden_move["direction"]:
+            return True
         return False
 
     def is_game_over(self):
