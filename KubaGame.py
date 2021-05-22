@@ -104,7 +104,7 @@ class KubaGame:
 
         while 0 <= pointer <= 6:
             pointer += step
-            if pointer == "X":
+            if self._board[row][pointer] == "X":
                 self._board[row].pop(pointer)
                 self._board[row].insert(column, "X")
                 self.set_forbidden_move((row, pointer), variable_dict[direction]["forbidden direction"])
@@ -509,10 +509,16 @@ def main():
 
     game.get_winner()  # returns None
     game.make_move('PlayerA', (6, 5), 'F')
-    game.make_move('PlayerA', (6, 5), 'L')  # Cannot make this move
+    game.make_move('PlayerB', (0, 5), 'B')
+    game.make_move('PlayerA', (5, 5), 'F')
+    game.make_move('PlayerB', (6, 0), 'R')
+    #game.make_move('PlayerA', (4, 5), 'F')
+    #game.make_move('PlayerA', (6, 5), 'L')  # Cannot make this move
     print(game.get_current_turn())  # returns 'PlayerB' because PlayerA has just played.
     game.get_marble((5, 5))  # returns 'W'
-
+    for line in game._board:
+        print(line)
+    print(game.get_marble_count())
 
 if __name__ == "__main__":
     main()
