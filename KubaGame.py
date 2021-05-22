@@ -67,9 +67,10 @@ class KubaGame:
         if not self.is_valid_move(playername, coordinates, direction):
             return False
 
+        self._current_turn = playername  # Needed for the first turn only
+
         self.push_marble(coordinates, direction)
 
-        self._current_turn = playername  # Needed for the first turn only
         self.switch_turns()  # Should we switch after every move or only when a marble isn't removed from the board?
         self.check_for_winner()
 
@@ -148,7 +149,7 @@ class KubaGame:
                 return None
 
             if pointer == boundary:
-                captured_piece_color = self.get_marble((row, pointer))
+                captured_piece_color = self.get_marble((pointer, column))
                 self.handle_captured_piece(captured_piece_color)  # fix this to handle all captured pieces
                 self.set_forbidden_move((), "")  # No forbidden moves, piece can not come back
                 while pointer != row:
@@ -468,7 +469,9 @@ class KubaGame:
         """Increments the number of red marbles captured by playername"""
         if captured_piece_color == "R":
             current_turn = self.get_current_turn()
+            print("capture count before:", self._players[current_turn]["capture count"])
             self._players[current_turn]["capture count"] += 1
+            print("capture count after:", self._players[current_turn]["capture count"])
 
     def get_marble(self, coordinates):
         """Returns the color of the marble ["W", "B", "R"] at the coordinates (row, column) or "X" if None"""
@@ -512,13 +515,20 @@ def main():
     game.make_move('PlayerB', (0, 5), 'B')
     game.make_move('PlayerA', (5, 5), 'F')
     game.make_move('PlayerB', (6, 0), 'R')
-    #game.make_move('PlayerA', (4, 5), 'F')
+    game.make_move('PlayerA', (4, 5), 'F')
+    game.make_move('PlayerB', (6, 1), 'R')
+    game.make_move('PlayerA', (3, 5), 'F')
+    game.make_move('PlayerB', (6, 2), 'R')
+    game.make_move('PlayerA', (2, 5), 'F')
+    game.make_move('PlayerB', (6, 3), 'R')
+
     #game.make_move('PlayerA', (6, 5), 'L')  # Cannot make this move
     print(game.get_current_turn())  # returns 'PlayerB' because PlayerA has just played.
     game.get_marble((5, 5))  # returns 'W'
     for line in game._board:
         print(line)
     print(game.get_marble_count())
+    print(game.get_captured("PlayerA"))
 
 if __name__ == "__main__":
     main()
