@@ -67,6 +67,7 @@ class KubaGame:
 
         self.push_marble(coordinates, direction)
 
+        self._current_turn = playername  # Needed for the first turn only
         self.switch_turns()  # Should we switch after every move or only when a marble isn't removed from the board?
         self.check_for_winner()
 
@@ -413,15 +414,14 @@ class KubaGame:
         return False
 
     def switch_turns(self):
-        """If _current_turn is not None, switches _current_turn to opposite player"""
-        if self._current_turn is not None:
-            playernames = self.get_playernames()
-            if self._current_turn == playernames[0]:
-                self._current_turn = playernames[1]
-                return None
-
-            self._current_turn = playernames[0]
+        """Switches _current_turn to opposite player"""
+        playernames = self.get_playernames()
+        if self._current_turn == playernames[0]:
+            self._current_turn = playernames[1]
             return None
+
+        self._current_turn = playernames[0]
+        return None
 
     def get_playernames(self):
         """Returns a list of playernames in _players"""
@@ -486,8 +486,7 @@ def main():
     game.get_winner()  # returns None
     game.make_move('PlayerA', (6, 5), 'F')
     game.make_move('PlayerA', (6, 5), 'L')  # Cannot make this move
-    print(game.get_current_turn()
-          )  # returns 'PlayerB' because PlayerA has just played.
+    print(game.get_current_turn())  # returns 'PlayerB' because PlayerA has just played.
     game.get_marble((5, 5))  # returns 'W'
 
 
