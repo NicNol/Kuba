@@ -476,125 +476,113 @@ class KubaGame:
         Returns:
             a boolean value based on if the marble at 'coordinates' can be pushed in 'direction'
         """
-        if not self.is_valid_coordinates(
-                coordinates) or not self.is_valid_direction(direction):
+        if not self.is_valid_coordinates(coordinates) or not self.is_valid_direction(direction):
             return False
 
         if self.is_forbidden_move(coordinates, direction):
             return False
 
         marble_color = self.get_marble(coordinates)
-        if direction == "L":
-            return self.can_marble_be_pushed_left(coordinates, marble_color)
-        if direction == "R":
-            return self.can_marble_be_pushed_right(coordinates, marble_color)
-        if direction == "F":
-            return self.can_marble_be_pushed_forward(coordinates, marble_color)
-        if direction == "B":
-            return self.can_marble_be_pushed_backward(coordinates, marble_color)
+        if direction == "L" or direction == "R":
+            return self.can_marble_be_pushed_horizontal(coordinates, direction, marble_color)
 
-    def can_marble_be_pushed_left(self, coordinates, marble_color):
-        """Determines if marble at 'coordinates' can be pushed in direction 'L'
+        if direction == "F" or direction == "B":
+            return self.can_marble_be_pushed_vertical(coordinates, direction, marble_color)
+
+    def can_marble_be_pushed_horizontal(self, coordinates, direction, marble_color):
+        """Determines if marble at 'coordinates' can be pushed in the given horizontal 'direction' ('L' or 'R' only)
 
         Parameters
             coordinates : coordinates of marble as a tuple (row, column)
+            direction : 'L' or 'R' (Left or Right) direction of push
             marble_color : the color of the marble at 'coordinates'
 
         Returns:
-            a boolean value based on if the marble at 'coordinates' can be pushed in direction 'L'
+            a boolean value based on if the marble at 'coordinates' can be pushed in the given horizontal direction
         """
         row = coordinates[0]
         column = coordinates[1]
+        variable_dict = {
+            "L": {
+                "step": -1,
+                "boundary": 0,
+                "opposite boundary": 6
+            },
+            "R": {
+                "step": 1,
+                "boundary": 6,
+                "opposite boundary": 0
+            }
+        }
+        step = variable_dict[direction]["step"]
+        boundary = variable_dict[direction]["boundary"]
+        opposite_boundary = variable_dict[direction]["opposite boundary"]
 
-        if column == 6 or self._board[row][column + 1] == "X":
-            # Check that we're not pushing our own piece off the board to the left
-            pointer = column - 1
-            while pointer >= 0:
+        # Checks the opposite direction of the push for the board edge (boundary) or an empty adjacent space
+        if column == opposite_boundary or self._board[row][column - step] == "X":
+
+            # Check that we're not pushing our own piece off the board in the direction of the push
+            pointer = column + step
+            while 0 <= pointer <= 6:
+
+                # If we find a blank space in the push direction, we can push the stack of marbles this direction
                 if self._board[row][pointer] == "X":
                     return True
 
-                if pointer == 0 and self._board[row][pointer] != marble_color:
+                # If we reach the edge of the board and the edge marble isn't the current_player's color,
+                # Then we can push the stack of marbles this direction
+                if pointer == boundary and self._board[row][pointer] != marble_color:
                     return True
 
-                pointer -= 1
+                pointer += step
         return False
 
-    def can_marble_be_pushed_right(self, coordinates, marble_color):
-        """Determines if marble at 'coordinates' can be pushed in direction 'R'
+    def can_marble_be_pushed_vertical(self, coordinates, direction, marble_color):
+        """Determines if marble at 'coordinates' can be pushed in the given vertical 'direction' ('F' or 'B' only)
 
         Parameters
             coordinates : coordinates of marble as a tuple (row, column)
+            direction : 'F' or 'B' (Forward or Backward) direction of push
             marble_color : the color of the marble at 'coordinates'
 
         Returns:
-            a boolean value based on if the marble at 'coordinates' can be pushed in direction 'R'
+            a boolean value based on if the marble at 'coordinates' can be pushed in the given vertical direction
         """
         row = coordinates[0]
         column = coordinates[1]
+        variable_dict = {
+            "F": {
+                "step": -1,
+                "boundary": 0,
+                "opposite boundary": 6
+            },
+            "B": {
+                "step": 1,
+                "boundary": 6,
+                "opposite boundary": 0
+            }
+        }
+        step = variable_dict[direction]["step"]
+        boundary = variable_dict[direction]["boundary"]
+        opposite_boundary = variable_dict[direction]["opposite boundary"]
 
-        if column == 0 or self._board[row][column - 1] == "X":
-            # Check that we're not pushing our own piece off the board to the right
-            pointer = column + 1
-            while pointer <= 6:
-                if self._board[row][pointer] == "X":
-                    return True
+        # Checks the opposite direction of the push for the board edge (boundary) or an empty adjacent space
+        if row == opposite_boundary or self._board[row - step][column] == "X":
 
-                if pointer == 6 and self._board[row][pointer] != marble_color:
-                    return True
+            # Check that we're not pushing our own piece off the board in the direction of the push
+            pointer = row + step
+            while 0 <= pointer <= 6:
 
-                pointer += 1
-        return False
-
-    def can_marble_be_pushed_forward(self, coordinates, marble_color):
-        """Determines if marble at 'coordinates' can be pushed in direction 'F'
-
-        Parameters
-            coordinates : coordinates of marble as a tuple (row, column)
-            marble_color : the color of the marble at 'coordinates'
-
-        Returns:
-            a boolean value based on if the marble at 'coordinates' can be pushed in direction 'F'
-        """
-        row = coordinates[0]
-        column = coordinates[1]
-
-        if row == 6 or self._board[row + 1][column] == "X":
-            # Check that we're not pushing our own piece off the board in the forward direction
-            pointer = row - 1
-            while pointer >= 0:
+                # If we find a blank space in the push direction, we can push the stack of marbles this direction
                 if self._board[pointer][column] == "X":
                     return True
 
-                if pointer == 0 and self._board[pointer][column] != marble_color:
+                # If we reach the edge of the board and the edge marble isn't the current_player's color,
+                # Then we can push the stack of marbles this direction
+                if pointer == boundary and self._board[pointer][column] != marble_color:
                     return True
 
-                pointer -= 1
-        return False
-
-    def can_marble_be_pushed_backward(self, coordinates, marble_color):
-        """Determines if marble at 'coordinates' can be pushed in direction 'B'
-
-        Parameters
-            coordinates : coordinates of marble as a tuple (row, column)
-            marble_color : the color of the marble at 'coordinates'
-
-        Returns:
-            a boolean value based on if the marble at 'coordinates' can be pushed in direction 'B'
-        """
-        row = coordinates[0]
-        column = coordinates[1]
-
-        if row == 0 or self._board[row - 1][column] == "X":
-            # Check that we're not pushing our own piece off the board in the backward direction
-            pointer = row + 1
-            while pointer <= 6:
-                if self._board[pointer][column] == "X":
-                    return True
-
-                if pointer == 6 and self._board[pointer][column] != marble_color:
-                    return True
-
-                pointer += 1
+                pointer += step
         return False
 
     def switch_turns(self):
