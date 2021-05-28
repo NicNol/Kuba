@@ -75,6 +75,7 @@ class KubaGame:
         self._valid_directions = ["L", "R", "F", "B"]  # Left, Right, Forward, Back
         self._winner = None
         self._current_turn = None
+        # Forbidden move is an illegal move that repeats the previous position
         self._forbidden_move = {"coordinates": (),
                                 "direction": ""}
 
@@ -103,10 +104,8 @@ class KubaGame:
             return False
 
         self._current_turn = playername  # Needed for the first turn only
-
         self.push_marble(coordinates, direction)
-
-        self.switch_turns()  # Should we switch after every move or only when a marble isn't removed from the board?
+        self.switch_turns()
         self.check_for_winner()
 
         return True
@@ -165,7 +164,7 @@ class KubaGame:
 
             if pointer == boundary:
                 captured_piece_color = self.get_marble((row, pointer))
-                self.handle_captured_piece(captured_piece_color)  # fix this to handle all captured pieces
+                self.handle_captured_piece(captured_piece_color)
                 self._board[row].pop(pointer)
                 self._board[row].insert(column, "X")
                 self.set_forbidden_move((), "")  # No forbidden moves, piece can not come back
@@ -250,12 +249,8 @@ class KubaGame:
         ) is not None and self.get_current_turn() != playername:
             return False
 
-        # Players may not push their pieces off the board.
+        # Players may not push their pieces off the board or repeat the previous position
         if not self.can_marble_be_pushed(coordinates, direction):
-            return False
-
-        # Players may not repeat the previous position
-        if self.is_forbidden_move(coordinates, direction):
             return False
 
         return True
@@ -328,7 +323,7 @@ class KubaGame:
         self._forbidden_move["direction"] = direction
 
     def is_forbidden_move(self, coordinates, direction):
-        """Returns a boolean based on if the coordinates and direction are the_forbidden_move
+        """Returns a boolean based on if the coordinates and direction are the forbidden_move
 
         Parameters:
             coordinates : coordinates of marble to be checked, as a tuple (row, column)
@@ -483,6 +478,9 @@ class KubaGame:
         """
         if not self.is_valid_coordinates(
                 coordinates) or not self.is_valid_direction(direction):
+            return False
+
+        if self.is_forbidden_move(coordinates, direction):
             return False
 
         marble_color = self.get_marble(coordinates)
