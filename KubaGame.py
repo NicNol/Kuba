@@ -33,10 +33,8 @@ class KubaGame:
         check_for_player_that_cannot_move() --> boolean
         can_current_player_move() --> boolean
         can_marble_be_pushed(coordinates, direction) --> boolean
-        can_marble_be_pushed_left(coordinates, marble_color) --> boolean
-        can_marble_be_pushed_right(coordinates, marble_color) --> boolean
-        can_marble_be_pushed_forward(coordinates, marble_color) --> boolean
-        can_marble_be_pushed_backward(coordinates, marble_color) --> boolean
+        can_marble_be_pushed_horizontal(coordinates, direction, marble_color) --> boolean
+        can_marble_be_pushed_vertical(coordinates, direction, marble_color) --> boolean
         switch_turns()
         get_playernames()
         get_captured(playername) --> captured pieces as int
