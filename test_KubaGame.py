@@ -5,6 +5,7 @@
 from KubaGame import KubaGame
 import unittest
 
+
 class TestKubaGame(unittest.TestCase):
     """Contains unit tests for KubaGame.py"""
 
@@ -38,6 +39,51 @@ class TestKubaGame(unittest.TestCase):
         self.assertFalse(self.kg.make_move("player1", (0, 7), "R"))  # Coordinates Out of Bounds
         self.assertFalse(self.kg.make_move("player1", (1, 0), "N"))  # Invalid Direction
         self.assertFalse(self.kg.make_move("player3", (1, 0), "R"))  # Invalid player name
+
+    def test_push_marble(self):
+        """TBD"""
+        self.kg.make_move("player1", (0, 0), "R")
+        board = [["X", "W", "W", "X", "X", "B", "B"],
+                 ["W", "W", "X", "R", "X", "B", "B"],
+                 ["X", "X", "R", "R", "R", "X", "X"],
+                 ["X", "R", "R", "R", "R", "R", "X"],
+                 ["X", "X", "R", "R", "R", "X", "X"],
+                 ["B", "B", "X", "R", "X", "W", "W"],
+                 ["B", "B", "X", "X", "X", "W", "W"]]
+        self.assertEqual(self.kg._board, board)
+
+        self.kg.make_move("player2", (1, 6), "L")
+        board = [["X", "W", "W", "X", "X", "B", "B"],
+                 ["W", "W", "X", "R", "B", "B", "X"],
+                 ["X", "X", "R", "R", "R", "X", "X"],
+                 ["X", "R", "R", "R", "R", "R", "X"],
+                 ["X", "X", "R", "R", "R", "X", "X"],
+                 ["B", "B", "X", "R", "X", "W", "W"],
+                 ["B", "B", "X", "X", "X", "W", "W"]]
+        self.assertEqual(self.kg._board, board)
+
+        self.kg.make_move("player1", (1, 0), "B")
+        board = [["X", "W", "W", "X", "X", "B", "B"],
+                 ["X", "W", "X", "R", "B", "B", "X"],
+                 ["W", "X", "R", "R", "R", "X", "X"],
+                 ["X", "R", "R", "R", "R", "R", "X"],
+                 ["X", "X", "R", "R", "R", "X", "X"],
+                 ["B", "B", "X", "R", "X", "W", "W"],
+                 ["B", "B", "X", "X", "X", "W", "W"]]
+        self.assertEqual(self.kg._board, board)
+
+        self.kg.make_move("player2", (1, 4), "B")
+        board = [["X", "W", "W", "X", "X", "B", "B"],
+                 ["X", "W", "X", "R", "X", "B", "X"],
+                 ["W", "X", "R", "R", "B", "X", "X"],
+                 ["X", "R", "R", "R", "R", "R", "X"],
+                 ["X", "X", "R", "R", "R", "X", "X"],
+                 ["B", "B", "X", "R", "R", "W", "W"],
+                 ["B", "B", "X", "X", "X", "W", "W"]]
+        self.assertEqual(self.kg._board, board)
+
+    def test_is_valid_move(self):
+        """TBD"""
 
 
 if __name__ == '__main__':
