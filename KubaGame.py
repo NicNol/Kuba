@@ -282,8 +282,7 @@ class KubaGame:
         if len(coordinates) != 2:
             return False
 
-        if not isinstance(coordinates[0], int) or not isinstance(
-                coordinates[1], int):
+        if not isinstance(coordinates[0], int) or not isinstance(coordinates[1], int):
             return False
 
         if coordinates[0] < 0 or coordinates[0] > 6:
@@ -416,8 +415,7 @@ class KubaGame:
                     self._winner = playername
                     return True
 
-        if black_piece_count == 0:
-            # White Wins
+        if black_piece_count == 0:  # White Wins
             for playername in players:
                 if self._players[playername]["color"] == "W":
                     self._winner = playername
